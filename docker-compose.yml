@@ -1,0 +1,16 @@
+version: '2.3'
+services:
+  ws:
+    build: ./ws
+    image: yukimochi/vrc_wsmms_ws
+    restart: always
+    ports:
+      - "9000"
+  static:
+    image: yukimochi/container-caddy
+    restart: always
+    ports:
+      - "80:2015"
+    volumes:
+      - ./static:/webroot
+      - ./Caddyfile:/etc/caddy/Caddyfile

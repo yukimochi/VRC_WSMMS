@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>YUKIMOCHI VRChat WebSocket Multimedia Streaming Listener</title>
+    <script>
+        const BUFFER_SIZE = 2048;
+        const SAMPLING_RATE = 48000;
+        const SERVER = "ws://localhost/websocket";
+
+        const ws = new WebSocket(SERVER);
+        ws.binaryType = 'arraybuffer';
+        ws.onopen = function () {
+            console.log('WebSocket Connection Established');
+        };
+        ws.onerror = function (e) {
+            console.log(e);
+        };
+        ws.onmessage = function (evt) {
+            if (evt.data.constructor !== ArrayBuffer) throw 'expecting ArrayBuffer';
+            data = evt.data;
+            left_stream = new Float32Array(data.slice(0, 2048 * 4));
+            right_stream = new Float32Array(data.slice(2048 * 4, 4096 * 4));
+            playAudioStream(left_stream, right_stream);
+        };
+
+        const ctx = new (window.AudioContext || window.webkitAudioContext);
+        var scheduled_time = 0;
+
+        function playChunk(audio_src, scheduled_time) {
+            if (audio_src.start) {
+                audio_src.start(scheduled_time);
+            } else {
+                audio_src.noteOn(scheduled_time);
+            }
+        }
+
+        function playAudioStream(left, right) {
+            var audio_buf = ctx.createBuffer(2, BUFFER_SIZE, SAMPLING_RATE),
+                audio_src = ctx.createBufferSource(),
+                current_time = ctx.currentTime;
+
+            audio_buf.getChannelData(0).set(left);
+            audio_buf.getChannelData(1).set(right);
+
+            audio_src.buffer = audio_buf;
+            audio_src.connect(ctx.destination);
+
+            if (current_time < scheduled_time) {
+                playChunk(audio_src, scheduled_time);
+                scheduled_time += audio_buf.duration;
+            } else {
+                playChunk(audio_src, current_time);
+                scheduled_time = current_time + audio_buf.duration;
+            }
+        }
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>

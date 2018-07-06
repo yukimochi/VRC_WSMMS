@@ -1,0 +1,11 @@
+{
+  "name": "YUKIMOCHI_WSMMS",
+  "version": "0.0.1",
+  "main": "index.js",
+  "repository": "https://github.com/yukimochi/VRC_WSMMS",
+  "author": "YUKIMOCHI",
+  "license": "AGPLv3",
+  "dependencies": {
+    "ws": "^5.2.1"
+  }
+}

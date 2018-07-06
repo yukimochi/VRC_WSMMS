@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>YUKIMOCHI VRChat WebSocket Multimedia Streaming Publisher</title>
+    <script>
+        const BUFFER_SIZE = 2048;
+        const SERVER = "ws://localhost/websocket";
+        const ctx = new AudioContext();
+
+        var ws = new WebSocket(SERVER, ['{"WSMMSPUB":"KEYKEYKEY"}']);
+        ws.binaryType = 'arraybuffer';
+        ws.onopen = function () {
+            console.log('WebSocket Connection Established');
+        };
+        ws.onerror = function (e) {
+            console.log(String(e));
+        };
+
+        function getUserMedia(option) {
+            if ('getUserMedia' in navigator.mediaDevices) {
+                return navigator.mediaDevices.getUserMedia(option);
+            }
+            else {
+                return new Promise(function (resolve, reject) {
+                    navigator.getUserMedia(option,
+                        resolve,
+                        reject
+                    );
+                });
+            }
+        };
+
+        function CollectVideo() {
+            getUserMedia({
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false,
+                }
+            })
+                .then(function (stream) {
+                    var source = ctx.createMediaStreamSource(stream);
+                    var processor = ctx.createScriptProcessor(BUFFER_SIZE, 2);
+                    processor.onaudioprocess = function (ev) {
+                        var inputBuffer = ev.inputBuffer;
+
+                        var left = inputBuffer.getChannelData(0);
+                        var right = inputBuffer.getChannelData(1);
+                        var multiplexed = new Float32Array(BUFFER_SIZE * 2);
+                        for (let index = 0; index < BUFFER_SIZE; index++) {
+                            multiplexed[index] = left[index];
+                            multiplexed[index + BUFFER_SIZE - 1] = right[index];
+                        }
+                        ws.send(multiplexed);
+                    }
+                    source.connect(processor);
+                }).catch(function (e) {
+                    console.error('FAILED Activate Audio Device.', e);
+                    return;
+                });
+        };
+
+        CollectVideo();
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

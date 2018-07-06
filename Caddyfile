@@ -1,0 +1,6 @@
+http://:2015 {
+    root /webroot
+    proxy /websocket ws:9000 {
+        websocket
+    }
+}
