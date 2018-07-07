@@ -5,11 +5,23 @@
     <meta charset="UTF-8">
     <title>YUKIMOCHI VRChat WebSocket Multimedia Streaming Listener</title>
     <script>
+        function getParam(name) {
+            url = window.location.href;
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+    </script>
+    <script>
         const BUFFER_SIZE = 2048;
         const SAMPLING_RATE = 48000;
         const SERVER = "ws://localhost/websocket";
+        const params = { "room": getParam('room') };
 
-        const ws = new WebSocket(SERVER);
+        var ws = new WebSocket(SERVER, 'listen-' + params.room);
         ws.binaryType = 'arraybuffer';
         ws.onopen = function () {
             console.log('WebSocket Connection Established');

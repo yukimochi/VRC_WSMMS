@@ -8,6 +8,10 @@ VRChat WebPanelのためのリアルタイム音声ストリーミングサー�
  - Adobe Flash Player 不要
  - 空間音響に対応
  - Sound FX で音量変更可能
+ - ルーム名機能で複数の配信を仲介可能。
+
+## 注意
+ このシステムでは、32bitの無圧縮PCMデータを送受信します。およそ1接続に3Mbpsの帯域を必要とします。
 
 ## 使い方
 
@@ -31,8 +35,8 @@ VRChat WebPanelのためのリアルタイム音声ストリーミングサー�
 
 ### 配信
 
-`publisher.html` を Firefox, Chrome で実行し `getUserMedia` により配信します。
+`publisher.html?room=<ルーム名>` として Firefox, Chrome で実行し `getUserMedia` により配信します。
 
 ### 視聴
 
-`listener.html` を VRChat WebPanel, Firefox, Chrome で実行すると視聴できます。
+`listener.html?room=<ルーム名>` として VRChat WebPanel, Firefox, Chrome で実行すると視聴できます。
