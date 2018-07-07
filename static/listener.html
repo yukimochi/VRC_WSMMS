@@ -20,8 +20,8 @@
         ws.onmessage = function (evt) {
             if (evt.data.constructor !== ArrayBuffer) throw 'expecting ArrayBuffer';
             data = evt.data;
-            left_stream = new Float32Array(data.slice(0, 2048 * 4));
-            right_stream = new Float32Array(data.slice(2048 * 4, 4096 * 4));
+            left_stream = new Float32Array(data.slice(0, BUFFER_SIZE * 4));
+            right_stream = new Float32Array(data.slice(BUFFER_SIZE * 4, BUFFER_SIZE * 4));
             playAudioStream(left_stream, right_stream);
         };
 
