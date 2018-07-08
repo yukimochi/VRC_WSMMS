@@ -35,6 +35,9 @@
         }, 'listener-' + params.room);
 
         player.start();
+        window.onbeforeunload = function () {
+            player.stop();
+        }
     </script>
 </head>
 

@@ -127,6 +127,16 @@
         };
     };
 
+    WSAudioAPI.Player.prototype.stop = function () {
+        this.audioQueue = null;
+        this.scriptNode.disconnect();
+        this.scriptNode = null;
+        this.gainNode.disconnect();
+        this.gainNode = null;
+
+        this.socket.close();
+    };
+
     WSAudioAPI.Streamer.prototype.start = function (onError) {
         var _this = this;
         this.socket = new WebSocket(this.config.server, this.protocol);
@@ -166,6 +176,24 @@
             _this.stream.getTracks()[0].stop();
             console.log('Disconnected from server');
         };
+    };
+
+    WSAudioAPI.Streamer.prototype.stop = function () {
+        if (this.audioInput) {
+            this.audioInput.disconnect();
+            this.audioInput = null;
+        }
+        if (this.gainNode) {
+            this.gainNode.disconnect();
+            this.gainNode = null;
+        }
+        if (this.recorder) {
+            this.recorder.disconnect();
+            this.recorder = null;
+        }
+        this.stream.getTracks()[0].stop()
+
+        this.socket.close();
     };
 
 })(window);

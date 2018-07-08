@@ -35,6 +35,9 @@
         }, 'publish-' + params.room);
 
         streamer.start();
+        window.onbeforeunload = function () {
+            streamer.stop();
+        }
     </script>
 </head>
 
