@@ -32,7 +32,7 @@
             this.protocol = protocol;
             this.sampler = new Resampler(this.config.codec.sampleRate, 48000, 2, this.config.codec.bufferSize);
             this.decoder = new OpusDecoder(this.config.codec.sampleRate, this.config.codec.channels);
-            this.silence = new Float32Array(this.config.codec.bufferSize);
+            this.silence = new Float32Array(this.config.codec.bufferSize / 2);
         },
         Streamer: function (config, protocol) {
             this.config = {};
@@ -111,8 +111,8 @@
             if (_this.audioQueue.length()) {
                 var buffer = _this.audioQueue.read(_this.config.codec.bufferSize);
 
-                var l_buffer = new Float32Array(_this.config.codec.bufferSize / 2)
-                var r_buffer = new Float32Array(_this.config.codec.bufferSize / 2)
+                var l_buffer = new Float32Array(_this.config.codec.bufferSize / 2);
+                var r_buffer = new Float32Array(_this.config.codec.bufferSize / 2);
                 for (var i = 0; i < _this.config.codec.bufferSize / 2; i++) {
                     l_buffer[i] = buffer[i * 2];
                     r_buffer[i] = buffer[i * 2 + 1];
