@@ -30,7 +30,7 @@
             this.config.codec = config.codec || defaultConfig.codec;
             this.config.server = config.server || defaultConfig.server;
             this.protocol = protocol;
-            this.sampler = new Resampler(this.config.codec.sampleRate, 48000, 1, this.config.codec.bufferSize);
+            this.sampler = new Resampler(this.config.codec.sampleRate, 48000, 2, this.config.codec.bufferSize);
             this.decoder = new OpusDecoder(this.config.codec.sampleRate, this.config.codec.channels);
             this.silence = new Float32Array(this.config.codec.bufferSize);
         },
@@ -39,7 +39,7 @@
             this.config.codec = config.codec || defaultConfig.codec;
             this.config.server = config.server || defaultConfig.server;
             this.protocol = protocol;
-            this.sampler = new Resampler(48000, this.config.codec.sampleRate, 1, this.config.codec.bufferSize);
+            this.sampler = new Resampler(48000, this.config.codec.sampleRate, 2, this.config.codec.bufferSize);
             this.encoder = new OpusEncoder(this.config.codec.sampleRate, this.config.codec.channels, this.config.codec.app, this.config.codec.frameDuration);
             var _this = this;
             this._makeStream = function (onError) {
@@ -54,9 +54,16 @@
                         _this.stream = stream;
                         _this.audioInput = audioContext.createMediaStreamSource(stream);
                         _this.gainNode = audioContext.createGain();
-                        _this.recorder = audioContext.createScriptProcessor(_this.config.codec.bufferSize, 1, 1);
+                        _this.recorder = audioContext.createScriptProcessor(_this.config.codec.bufferSize / 2, 2, 2);
                         _this.recorder.onaudioprocess = function (e) {
-                            var resampled = _this.sampler.resampler(e.inputBuffer.getChannelData(0));
+                            var l_buffer = e.inputBuffer.getChannelData(0);
+                            var r_buffer = e.inputBuffer.getChannelData(1);
+                            var buffer = new Float32Array(_this.config.codec.bufferSize);
+                            for (var i = 0; i < _this.config.codec.bufferSize; i++) {
+                                buffer[i * 2] = l_buffer[i];
+                                buffer[i * 2 + 1] = r_buffer[i];
+                            }
+                            var resampled = _this.sampler.resampler(buffer);
                             var packets = _this.encoder.encode_float(resampled);
                             for (var i = 0; i < packets.length; i++) {
                                 if (_this.socket.readyState == 1) _this.socket.send(packets[i]);
@@ -99,12 +106,22 @@
             }
         };
 
-        this.scriptNode = audioContext.createScriptProcessor(this.config.codec.bufferSize, 1, 1);
+        this.scriptNode = audioContext.createScriptProcessor(this.config.codec.bufferSize / 2, 2, 2);
         this.scriptNode.onaudioprocess = function (e) {
             if (_this.audioQueue.length()) {
-                e.outputBuffer.getChannelData(0).set(_this.audioQueue.read(_this.config.codec.bufferSize));
+                var buffer = _this.audioQueue.read(_this.config.codec.bufferSize);
+
+                var l_buffer = new Float32Array(_this.config.codec.bufferSize / 2)
+                var r_buffer = new Float32Array(_this.config.codec.bufferSize / 2)
+                for (var i = 0; i < _this.config.codec.bufferSize / 2; i++) {
+                    l_buffer[i] = buffer[i * 2];
+                    r_buffer[i] = buffer[i * 2 + 1];
+                }
+                e.outputBuffer.getChannelData(0).set(l_buffer);
+                e.outputBuffer.getChannelData(1).set(r_buffer);
             } else {
                 e.outputBuffer.getChannelData(0).set(_this.silence);
+                e.outputBuffer.getChannelData(1).set(_this.silence);
             }
         };
         this.gainNode = audioContext.createGain();
